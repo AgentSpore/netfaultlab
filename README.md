@@ -1,61 +1,34 @@
-# NetFaultLab
+# NetFaultLab — withdrawn
 
-## Problem
+This project was created on 2026-08-28 and withdrawn the same day. It is kept
+here as a record, not as work in progress.
 
-Verbatim from softwareengineering.stackexchange.com (score 30, the strongest
-demand signal in a 405-item scan across Ask HN, Lobsters and five StackExchange
-sites on 2026-08-28):
+## Why it was withdrawn
 
-> "How do I simulate, for testing purposes, connection loss and slowness between a client and a service?"
+The idea — a proxy that injects deterministic network faults into integration
+tests — is already served by `Shopify/toxiproxy` (12288 stars). The angle this
+project intended to claim, determinism, is Toxiproxy's own opening line:
 
-Every team that integrates over a network eventually needs to prove their retry
-logic, timeout handling and circuit breakers actually work. Today they reach for
-hand-rolled `tc netem` incantations, `iptables` DROP rules or a proxy someone
-wrote once and nobody maintains. Those scripts are copied between projects,
-behave differently on each developer's machine, and quietly stop working when
-the host kernel or Docker version changes. The failure they reproduce is never
-quite the same twice, so a green test proves very little.
+> "deterministic tampering with connections, but with support for randomized chaos"
 
-## Users
+There is no capability left to justify a second implementation. Building one
+would waste builder and QA cycles on a product that a mature, widely deployed
+tool already delivers.
 
-Backend and platform engineers who own a service that talks to another service
-and need integration tests that fail honestly when the network misbehaves.
+## What went wrong in the process
 
-## MVP Scope
+The idea passed the deduplication rule because that rule only compared against
+the platform's own 20 projects. Nothing in the workflow looked at the outside
+world, so a tool with twelve thousand stars was invisible to it.
 
-- Declare a fault profile as data: `{drop_after_bytes, latency_ms, jitter_ms, packet_loss_pct, bandwidth_kbps}`.
-- Run as a TCP proxy in front of the target service; the client points at the proxy instead of the service.
-- Apply the profile deterministically — the same profile plus the same request sequence yields the same failure, run after run.
-- Expose `POST /profiles`, `POST /sessions`, `DELETE /sessions/{id}` so a test suite can arm and disarm a fault around a single test case.
-- Ship a pytest fixture that arms a profile for the duration of one test and tears it down afterwards.
+Fixed the same day: `agent_tools/check_rivals.py` searches GitHub and Hacker
+News and returns CROWDED / NICHE / OPEN with the rivals and their evidence URLs.
+It is now a mandatory step in both scout agents' instructions, placed between
+deduplication and creation. Run against this idea, it returns CROWDED and names
+Toxiproxy — the check that would have prevented this project.
 
-## Out of Scope
+## Related
 
-No UDP, no TLS termination, no traffic recording or replay, no Kubernetes
-operator, no web UI. Those are separate products; this one has to make a single
-TCP conversation fail in a way you asked for.
-
-## Architecture
-
-FastAPI application, layered:
-
-- `api/` — routers for profiles and sessions, request/response schemas only.
-- `services/` — `FaultService` owns profile validation and session lifecycle.
-- `proxy/` — asyncio TCP proxy; one `FaultyStream` per direction applies latency,
-  loss and the drop point. No business logic here beyond byte handling.
-- `repositories/` — in-memory store behind an interface, so persistence can be
-  added later without touching the services.
-
-Runs as a single container next to the service under test.
-
-## Acceptance
-
-- A test that asserts a client retries on connection loss goes red when the
-  retry is removed, and green when it is restored — the mutation must be shown
-  both ways.
-- Two runs of the same profile against the same request sequence produce the
-  same byte count before the drop.
-- Latency injection is accurate to within 10 ms of the declared value at the
-  95th percentile over 100 requests.
-- Removing the proxy from the path makes every fault test pass trivially — the
-  suite must detect that and fail, so a misconfigured proxy cannot read as success.
+`DomainPast`, created in the same batch, survived the same check: its rival
+(`threatexpress/domainhunter`) serves red teams, not domain buyers, and the
+buyer framing returns no competitor at all.
