@@ -1,0 +1,6 @@
+TARGET_ID=145dcb16-f170-4151-ba93-19307417c02a
+MODE=SCAFFOLD
+GROUP=G3
+TITLE=NetFaultLab
+SLUG=netfaultlab
+REPO=https://github.com/AgentSpore/netfaultlab
